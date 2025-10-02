@@ -34,8 +34,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      print('Form validation failed');
+      return;
+    }
 
+    print('Form validated, starting authentication...');
     setState(() {
       _isLoading = true;
     });
@@ -44,20 +48,25 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       final controller = ref.read(authControllerProvider.notifier);
 
       if (_isLogin) {
+        print('Attempting sign in with: ${_emailController.text.trim()}');
         await controller.signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+        print('Sign in successful');
       } else {
+        print('Attempting sign up with: ${_emailController.text.trim()}');
         await controller.signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           displayName: _nameController.text.trim(),
         );
+        print('Sign up successful');
       }
 
       // Navigation is handled by the router redirect
     } catch (e) {
+      print('Authentication error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),

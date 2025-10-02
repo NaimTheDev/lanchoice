@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../shared/providers/demo_providers.dart';
+import '../../../shared/providers/user_state_provider.dart';
 import '../../../shared/widgets/post_card.dart';
 import '../../../shared/widgets/user_avatar.dart';
 
@@ -13,13 +14,64 @@ class FeedScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final posts = ref.watch(demoPostsProvider);
-    final currentUser = ref.watch(currentUserProvider);
+    final userState = ref.watch(currentUserStateProvider);
     final theme = Theme.of(context);
+
+    // Show loading indicator while user state is loading
+    if (userState.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Show error state if there's an error
+    if (userState.hasError) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: theme.colorScheme.error,
+              ),
+              const SizedBox(height: AppConstants.paddingMedium),
+              Text(
+                'Error loading user profile',
+                style: theme.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: AppConstants.paddingSmall),
+              Text(
+                userState.errorMessage ?? 'Unknown error',
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppConstants.paddingLarge),
+              ElevatedButton(
+                onPressed: () {
+                  // Refresh the user state
+                  ref.invalidate(userStateProvider);
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // At this point, user should have a profile (routing handles this)
+    final currentUser = userState.profile;
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(child: Text('No user profile available')),
+      );
+    }
 
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          // Simulate refresh
+          // Refresh user state and posts
+          ref.invalidate(userStateProvider);
           await Future.delayed(const Duration(seconds: 1));
         },
         child: CustomScrollView(

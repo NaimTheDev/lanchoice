@@ -1,30 +1,78 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/auth_screen.dart';
 import '../../features/coming_soon/presentation/coming_soon_screen.dart';
 import '../../features/feed/presentation/feed_screen.dart';
+import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../shared/widgets/main_layout.dart';
+import '../../shared/providers/user_state_provider.dart';
+
+/// Notifier for router refreshes
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authControllerProvider);
-
   return GoRouter(
     initialLocation: '/auth',
+    refreshListenable: GoRouterRefreshStream(
+      ref.watch(userStateProvider.stream),
+    ),
     redirect: (context, state) {
-      final isAuthRoute = state.matchedLocation == '/auth';
-      final isAuthenticated = authState.value != null;
+      final userStateAsync = ref.read(userStateProvider);
 
-      // If not authenticated and not on auth route, redirect to auth
-      if (!isAuthenticated && !isAuthRoute) {
-        return '/auth';
+      // If still loading, don't redirect
+      if (userStateAsync is AsyncLoading) {
+        return null;
       }
 
-      // If authenticated and on auth route, redirect to home
-      if (isAuthenticated && isAuthRoute) {
-        return '/';
+      final userState = userStateAsync.value ?? const UserStateLoading();
+      final isAuthRoute = state.matchedLocation == '/auth';
+      final isProfileSetupRoute = state.matchedLocation == '/profile-setup';
+
+      // Handle different user states
+      if (userState.isLoading) {
+        // While loading, don't redirect - let the current route handle loading state
+        return null;
+      }
+
+      if (!userState.isAuthenticated) {
+        // User is not authenticated, redirect to auth unless already there
+        if (!isAuthRoute) {
+          return '/auth';
+        }
+        return null;
+      }
+
+      if (userState.isAuthenticated && !userState.hasProfile) {
+        // User is authenticated but has no profile, redirect to profile setup
+        if (!isProfileSetupRoute) {
+          return '/profile-setup';
+        }
+        return null;
+      }
+
+      if (userState.isAuthenticated && userState.hasProfile) {
+        // User is fully authenticated with profile
+        if (isAuthRoute || isProfileSetupRoute) {
+          return '/';
+        }
+        return null;
       }
 
       // No redirect needed
@@ -32,6 +80,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/auth', builder: (context, state) => const AuthScreen()),
+      GoRoute(
+        path: '/profile-setup',
+        builder: (context, state) => const ProfileSetupScreen(),
+      ),
       ShellRoute(
         builder: (context, state, child) => MainLayout(child: child),
         routes: [

@@ -6,11 +6,11 @@ part of 'demo_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$currentUserHash() => r'e4d463ffa0f815986bfc7121a250ddd302ed166a';
+String _$currentUserHash() => r'8d8b42f2800c0e884426c2f9f5a7a5202dc9e1a2';
 
 /// See also [currentUser].
 @ProviderFor(currentUser)
-final currentUserProvider = AutoDisposeProvider<User>.internal(
+final currentUserProvider = AutoDisposeProvider<User?>.internal(
   currentUser,
   name: r'currentUserProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -22,7 +22,7 @@ final currentUserProvider = AutoDisposeProvider<User>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef CurrentUserRef = AutoDisposeProviderRef<User>;
+typedef CurrentUserRef = AutoDisposeProviderRef<User?>;
 String _$userPostsHash() => r'7003d360bf930cb8a790ecc623376d00a2e1af92';
 
 /// Copied from Dart SDK

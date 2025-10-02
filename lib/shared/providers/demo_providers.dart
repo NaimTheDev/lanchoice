@@ -7,19 +7,16 @@ import '../models/club.dart';
 import '../models/event.dart';
 import '../models/comment.dart';
 import '../data/demo_data.dart';
-import './user_profile_provider.dart';
+import './user_state_provider.dart';
 
 part 'demo_providers.g.dart';
 
-// Current User Provider - now uses real Firebase user
-// Note: This returns the demo user as fallback if no Firebase user is available
+// Current User Provider - now uses the new user state system
+// Note: This will return null if user is not authenticated or profile is not loaded
 @riverpod
-User currentUser(CurrentUserRef ref) {
-  // Get the real user from Firebase
-  final realUser = ref.watch(currentUserProfileValueProvider);
-
-  // If we have a real user, return it; otherwise return the demo user as fallback
-  return realUser ?? DemoData.currentUser;
+User? currentUser(CurrentUserRef ref) {
+  // Get the user from the new user state system
+  return ref.watch(currentUserProfileProvider);
 }
 
 // Users Provider

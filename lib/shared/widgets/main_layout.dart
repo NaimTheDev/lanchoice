@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/torque_theme_extension.dart';
 import '../../features/auth/presentation/auth_controller.dart';
+import '../providers/user_state_provider.dart';
 
 class MainLayout extends ConsumerWidget {
   const MainLayout({super.key, required this.child});
@@ -15,6 +16,42 @@ class MainLayout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final torqueTheme = theme.extension<TorqueThemeExtension>()!;
+    final userState = ref.watch(currentUserStateProvider);
+
+    // Show loading screen if user state is loading
+    if (userState.isLoading) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.directions_car,
+                size: 64,
+                color: torqueTheme.racingGreen,
+              ),
+              const SizedBox(height: AppConstants.paddingLarge),
+              Text(
+                AppConstants.appName,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: torqueTheme.racingGreen,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: AppConstants.paddingLarge),
+              const CircularProgressIndicator(),
+              const SizedBox(height: AppConstants.paddingMedium),
+              Text(
+                'Loading your profile...',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(

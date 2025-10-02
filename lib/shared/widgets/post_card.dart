@@ -31,6 +31,8 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   void _toggleLike() {
     final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) return;
+
     ref
         .read(demoPostsProvider.notifier)
         .likePost(widget.post.id, currentUser.id);
@@ -40,6 +42,8 @@ class _PostCardState extends ConsumerState<PostCard> {
     if (_commentController.text.trim().isEmpty) return;
 
     final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) return;
+
     final comment = Comment(
       id: 'c_${DateTime.now().millisecondsSinceEpoch}',
       author: currentUser,
@@ -73,7 +77,8 @@ class _PostCardState extends ConsumerState<PostCard> {
     final theme = Theme.of(context);
     final torqueTheme = theme.extension<TorqueThemeExtension>()!;
     final currentUser = ref.watch(currentUserProvider);
-    final isLiked = widget.post.likedBy.contains(currentUser.id);
+    final isLiked =
+        currentUser != null && widget.post.likedBy.contains(currentUser.id);
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
@@ -289,39 +294,40 @@ class _PostCardState extends ConsumerState<PostCard> {
             const Divider(height: 1),
 
             // Add comment
-            Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingMedium),
-              child: Row(
-                children: [
-                  UserAvatar(user: currentUser, radius: 16),
-                  const SizedBox(width: AppConstants.paddingMedium),
-                  Expanded(
-                    child: TextField(
-                      controller: _commentController,
-                      decoration: InputDecoration(
-                        hintText: 'Add a comment...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none,
+            if (currentUser != null)
+              Padding(
+                padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                child: Row(
+                  children: [
+                    UserAvatar(user: currentUser, radius: 16),
+                    const SizedBox(width: AppConstants.paddingMedium),
+                    Expanded(
+                      child: TextField(
+                        controller: _commentController,
+                        decoration: InputDecoration(
+                          hintText: 'Add a comment...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: theme.colorScheme.surfaceVariant,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppConstants.paddingMedium,
+                            vertical: AppConstants.paddingSmall,
+                          ),
                         ),
-                        filled: true,
-                        fillColor: theme.colorScheme.surfaceVariant,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppConstants.paddingMedium,
-                          vertical: AppConstants.paddingSmall,
-                        ),
+                        onSubmitted: (_) => _addComment(),
                       ),
-                      onSubmitted: (_) => _addComment(),
                     ),
-                  ),
-                  const SizedBox(width: AppConstants.paddingSmall),
-                  IconButton(
-                    icon: Icon(Icons.send, color: theme.colorScheme.primary),
-                    onPressed: _addComment,
-                  ),
-                ],
+                    const SizedBox(width: AppConstants.paddingSmall),
+                    IconButton(
+                      icon: Icon(Icons.send, color: theme.colorScheme.primary),
+                      onPressed: _addComment,
+                    ),
+                  ],
+                ),
               ),
-            ),
 
             // Comments list
             if (widget.post.comments.isNotEmpty)
