@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "490077799513",
+    "project_id": "lane-choice",
+    "storage_bucket": "lane-choice.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:490077799513:android:bc112292b1be6ff9dd1d48",
+        "android_client_info": {
+          "package_name": "com.example.lanchoice_mvp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCE6H6luyqpOz6aOIbQSTvCbXxJjH3BG5g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
